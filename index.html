@@ -98,7 +98,6 @@
             align-items: center;
             gap: 15px;
             padding: 25px 30px;
-            /* Painel bem mais transparente agora (0.45) */
             background: rgba(0, 0, 0, 0.45);
             border-radius: 20px;
             box-shadow: 0 15px 50px rgba(0, 0, 0, 0.9);
@@ -166,7 +165,6 @@
             transform: rotateY(180deg);
         }
 
-        /* Aplicação do Efeito Translúcido ainda mais forte (Glassmorphism) */
         .card-face {
             position: absolute;
             width: 100%;
@@ -174,18 +172,15 @@
             -webkit-backface-visibility: hidden;
             backface-visibility: hidden;
             border-radius: 12px;
-            /* Borda mais fina e transparente */
             border: 2px solid rgba(255, 255, 255, 0.2);
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
             overflow: hidden;
             background: rgba(255, 255, 255, 0.02);
-            /* Quase 100% transparente */
             backdrop-filter: blur(5px);
         }
 
         .card-back {
             transform: rotateY(180deg);
-            /* Branco mais translúcido para ler, mas ver o fundo */
             background: rgba(255, 255, 255, 0.65);
             color: #333;
             display: flex;
@@ -227,7 +222,6 @@
         }
 
         .fg-slide.active {
-            /* Deixei as fotos em 65% de opacidade para ficarem bem transparentes */
             opacity: 0.65;
             transform: scale(1);
         }
@@ -487,20 +481,24 @@
             const size = Math.random() * 1.5 + 0.5;
             heart.style.transform = `scale(${size})`;
 
-            heart.style.animationDuration = Math.random() * 5 + 5 + 's';
+            // Reduzi a duração para os corações caírem um pouco mais rápido (entre 3 e 7 segundos)
+            heart.style.animationDuration = Math.random() * 4 + 3 + 's';
 
             container.appendChild(heart);
 
+            // Tempo de remoção ajustado para garantir que a memória não fique sobrecarregada
             setTimeout(() => {
                 heart.remove();
-            }, 10000);
+            }, 8000);
         }
 
         window.onload = () => {
             inicializarSlideshows();
             updateCounter();
             setInterval(updateCounter, 1000);
-            setInterval(createHeartDrop, 800);
+            
+            // Aqui está a mágica: mudei de 800ms para 200ms. Agora caiem 5 corações por segundo!
+            setInterval(createHeartDrop, 200);
         };
     </script>
 </body>
