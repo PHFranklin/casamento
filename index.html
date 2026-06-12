@@ -51,7 +51,8 @@
             object-fit: cover;
             opacity: 0;
             transform: scale(1.1);
-            transition: opacity 2s ease-in-out, transform 8s ease-out;
+            /* AJUSTE: Transição de opacidade mais rápida (1s) para acompanhar o ritmo */
+            transition: opacity 1s ease-in-out, transform 8s ease-out;
             filter: brightness(25%) grayscale(20%);
         }
 
@@ -360,7 +361,8 @@
             imagensFundo.push(`secundarias/fundo-${i}.mp4`);
         }
 
-        const tempoFundo = 6000;
+        // AJUSTE: Reduzido de 6000 (6s) para 2500 (2.5s) para passar mais rápido
+        const tempoFundo = 2500; 
         const tempoPrincipal = 4000;
         const startDate = new Date(2021, 1, 27, 10, 50, 0);
 
@@ -481,15 +483,13 @@
             const size = Math.random() * 1.5 + 0.5;
             heart.style.transform = `scale(${size})`;
 
-            // Reduzi a duração para os corações caírem um pouco mais rápido (entre 3 e 7 segundos)
-            heart.style.animationDuration = Math.random() * 4 + 3 + 's';
+            heart.style.animationDuration = Math.random() * 5 + 5 + 's';
 
             container.appendChild(heart);
 
-            // Tempo de remoção ajustado para garantir que a memória não fique sobrecarregada
             setTimeout(() => {
                 heart.remove();
-            }, 8000);
+            }, 10000);
         }
 
         window.onload = () => {
@@ -497,7 +497,6 @@
             updateCounter();
             setInterval(updateCounter, 1000);
             
-            // Aqui está a mágica: mudei de 800ms para 200ms. Agora caiem 5 corações por segundo!
             setInterval(createHeartDrop, 200);
         };
     </script>
