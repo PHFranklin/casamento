@@ -50,7 +50,7 @@
             background-position: top center;
             object-fit: cover;
             opacity: 0;
-            z-index: 1;
+            z-index: 1; 
             transform: scale(1.1);
             transition: opacity 1.5s ease-in-out, transform 8s ease-out;
             filter: brightness(55%) grayscale(10%); 
@@ -64,7 +64,7 @@
 
         .bg-slide.active {
             opacity: 1;
-            z-index: 2;
+            z-index: 2; 
             transform: scale(1);
         }
 
@@ -216,13 +216,8 @@
             opacity: 0;
             z-index: 1;
             transform: scale(1.15);
+            /* Transição ajustada para apagar suavemente e não sobrepor */
             transition: opacity 1s ease-in-out, transform 5s ease-out;
-        }
-
-        .fg-slide.prev {
-            opacity: 0.65;
-            z-index: 1;
-            transform: scale(1);
         }
 
         .fg-slide.active {
@@ -302,6 +297,8 @@
 
 <body>
 
+    <video id="musica-surpresa" src="secundarias/fundo-55.mp4" playsinline preload="auto" style="display: none;"></video>
+
     <div id="background-slideshow"></div>
     <div id="hearts-container"></div>
 
@@ -338,10 +335,6 @@
     </div>
 
     <script>
-        // CONFIGURAÇÃO DO ÁUDIO
-        const musicaFundo = new Audio('secundarias/fundo-55.mp4');
-        musicaFundo.loop = true; // Faz a música repetir quando acabar
-
         const bgUrls = [];
         const fgUrls = [];
 
@@ -417,6 +410,7 @@
             loadNextBg();
             loadNextFg();
 
+            // Rotação do Fundo 
             let currentBg = 0;
             setInterval(() => {
                 const slides = document.querySelectorAll('#background-slideshow .bg-slide');
@@ -432,16 +426,14 @@
                 }
             }, tempoFundo);
 
+            // CORREÇÃO: Rotação da Foto Principal (Sem sobreposição transparente)
             let currentFg = 0;
             setInterval(() => {
                 const slides = document.querySelectorAll('#main-carousel .fg-slide');
                 if (slides.length > 1) {
                     if(currentFg >= slides.length) currentFg = 0;
-
-                    slides.forEach(s => s.classList.remove('prev'));
-                    slides[currentFg].classList.remove('active');
-                    slides[currentFg].classList.add('prev');
                     
+                    slides[currentFg].classList.remove('active');
                     currentFg = (currentFg + 1) % slides.length;
                     slides[currentFg].classList.add('active');
                 }
@@ -482,18 +474,17 @@
             document.getElementById('seconds').innerText = seconds;
         }
 
-        // LÓGICA ATUALIZADA DO BOTÃO SURPRESA E DA MÚSICA
+        // CORREÇÃO: Função de play puxando do vídeo invisível
         function toggleSurprise() {
             const card = document.getElementById('surprise-card');
+            const musica = document.getElementById('musica-surpresa');
+            
             card.classList.toggle('is-flipped');
 
-            // Toca a música caso esteja pausada, pausa se estiver tocando
-            if (musicaFundo.paused) {
-                musicaFundo.play().catch(error => {
-                    console.log("O navegador bloqueou o áudio. O usuário precisa interagir mais com a página.");
-                });
+            if (musica.paused) {
+                musica.play().catch(e => console.log("Erro ao reproduzir música:", e));
             } else {
-                musicaFundo.pause();
+                musica.pause();
             }
         }
 
