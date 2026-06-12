@@ -300,8 +300,7 @@
 
 <body>
 
-    <video id="musica-surpresa-1" src="secundarias/fundo-55.mp4" playsinline preload="auto" style="display: none;"></video>
-    <video id="musica-surpresa-2" src="secundarias/fundo-55.mp4" playsinline preload="auto" style="display: none;"></video>
+    <video id="musica-surpresa" src="secundarias/fundo-55.mp4" playsinline autoplay loop style="display: none;"></video>
 
     <div id="background-slideshow"></div>
     <div id="hearts-container"></div>
@@ -476,70 +475,6 @@
             document.getElementById('seconds').innerText = seconds;
         }
 
-        // LÓGICA DE ÁUDIO INVISÍVEL E AUTOMÁTICO
-        const m1 = document.getElementById('musica-surpresa-1');
-        const m2 = document.getElementById('musica-surpresa-2');
-        let currentAudio = m1;
-        let nextAudio = m2;
-        let audioTimer;
-        let musicaJaIniciada = false;
-
-        function startAudioLoopCheck() {
-            clearInterval(audioTimer);
-            let crossfading = false;
-            
-            audioTimer = setInterval(() => {
-                if (currentAudio.duration && !crossfading) {
-                    if (currentAudio.currentTime > currentAudio.duration - 1.5) {
-                        crossfading = true;
-                        nextAudio.currentTime = 0;
-                        nextAudio.volume = 0;
-                        nextAudio.play().catch(e => console.log(e));
-
-                        let steps = 10;
-                        let currentStep = 0;
-                        let fade = setInterval(() => {
-                            currentStep++;
-                            let progress = currentStep / steps;
-                            nextAudio.volume = progress;
-                            currentAudio.volume = 1 - progress;
-
-                            if (currentStep >= steps) {
-                                clearInterval(fade);
-                                currentAudio.pause();
-                                
-                                let temp = currentAudio;
-                                currentAudio = nextAudio;
-                                nextAudio = temp;
-                                crossfading = false;
-                            }
-                        }, 100); 
-                    }
-                }
-            }, 200);
-        }
-
-        // Tenta tocar a música. É engatilhado tanto no carregamento quanto no primeiro toque na tela.
-        function tentarTocarMusica() {
-            if (!musicaJaIniciada) {
-                m1.play().then(() => { 
-                    m1.volume = 1; 
-                    musicaJaIniciada = true;
-                    startAudioLoopCheck(); 
-                    
-                    // Prepara o segundo áudio silenciosamente
-                    m2.play().then(() => { m2.pause(); m2.volume = 0; m2.currentTime = 0; }).catch(e => {});
-                    
-                    // Remove os gatilhos invisíveis da tela para não gastar processamento
-                    document.removeEventListener('click', tentarTocarMusica);
-                    document.removeEventListener('touchstart', tentarTocarMusica);
-                }).catch(e => {
-                    console.log("Navegador bloqueou auto-play. Aguardando interação...");
-                });
-            }
-        }
-
-        // Apenas gira o cartão (não interfere mais na música)
         function toggleSurprise() {
             const card = document.getElementById('surprise-card');
             card.classList.toggle('is-flipped');
@@ -569,12 +504,21 @@
             setInterval(updateCounter, 1000);
             setInterval(createHeartDrop, 150);
             
-            // Tentativa número 1: Tocar sozinho ao abrir a página
-            tentarTocarMusica();
+            // LÓGICA DE ÁUDIO DIRETA E SIMPLIFICADA
+            const musica = document.getElementById('musica-surpresa');
+            musica.volume = 1;
             
-            // Tentativa número 2 (Gatilhos de fallback): Ao primeiro toque na tela
-            document.addEventListener('click', tentarTocarMusica);
-            document.addEventListener('touchstart', tentarTocarMusica);
+            // Força a reprodução via JavaScript caso o atributo HTML falhe
+            let playPromise = musica.play();
+            
+            if (playPromise !== undefined) {
+                playPromise.catch(error => {
+                    console.log("O navegador bloqueou o áudio automático.");
+                    // Fallback de segurança: libera o áudio no primeiro toque na tela
+                    document.addEventListener('click', () => musica.play(), { once: true });
+                    document.addEventListener('touchstart', () => musica.play(), { once: true });
+                });
+            }
         };
     </script>
 </body>
