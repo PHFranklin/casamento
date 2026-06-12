@@ -50,13 +50,12 @@
             background-position: top center;
             object-fit: cover;
             opacity: 0;
-            z-index: 1; /* Fica atrás por padrão */
+            z-index: 1;
             transform: scale(1.1);
             transition: opacity 1.5s ease-in-out, transform 8s ease-out;
             filter: brightness(55%) grayscale(10%); 
         }
 
-        /* O SEGREDO ANTI-TELA PRETA: A foto antiga continua visível embaixo */
         .bg-slide.prev {
             opacity: 1;
             z-index: 1; 
@@ -65,7 +64,7 @@
 
         .bg-slide.active {
             opacity: 1;
-            z-index: 2; /* A nova foto surge por cima */
+            z-index: 2;
             transform: scale(1);
         }
 
@@ -267,13 +266,28 @@
         }
 
         /* --- BOTÃO CORAÇÃO PULSANTE --- */
+        .heart-interaction {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-top: 5px;
+        }
+
         .heart-btn {
             font-size: 2rem;
             cursor: pointer;
-            margin-top: 5px;
             animation: heartbeat 1.5s infinite;
             filter: drop-shadow(0 4px 8px rgba(255, 50, 50, 0.6));
             padding: 10px;
+        }
+
+        .heart-hint {
+            font-size: 0.6rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #ffcccc;
+            opacity: 0.8;
+            margin-top: -5px;
         }
 
         @keyframes heartbeat {
@@ -317,11 +331,17 @@
             </div>
         </div>
 
-        <div class="heart-btn" onclick="toggleSurprise()">❤️</div>
+        <div class="heart-interaction">
+            <div class="heart-btn" onclick="toggleSurprise()">❤️</div>
+            <span class="heart-hint">Toque aqui</span>
+        </div>
     </div>
 
     <script>
-        // Criação das listas com embaralhamento
+        // CONFIGURAÇÃO DO ÁUDIO
+        const musicaFundo = new Audio('secundarias/fundo-55.mp4');
+        musicaFundo.loop = true; // Faz a música repetir quando acabar
+
         const bgUrls = [];
         const fgUrls = [];
 
@@ -336,7 +356,6 @@
         const tempoPrincipal = 4000;
         const startDate = new Date(2021, 1, 27, 10, 50, 0);
 
-        // --- SISTEMA DE FILA INTELIGENTE (LAZY LOAD) ---
         let bgLoadIndex = 0;
         function loadNextBg() {
             if (bgLoadIndex >= bgUrls.length) return;
@@ -358,9 +377,9 @@
                         if (container.children.length === 0) video.classList.add('active');
                         container.appendChild(video);
                     }
-                    loadNextBg(); // Só carrega o próximo quando este estiver pronto
+                    loadNextBg();
                 };
-                video.onerror = loadNextBg; // Se der erro, pula direto pro próximo
+                video.onerror = loadNextBg;
             } else {
                 let img = new Image();
                 img.src = url;
@@ -395,11 +414,9 @@
         }
 
         function inicializarSlideshows() {
-            // Dispara a fila inteligente de carregamento
             loadNextBg();
             loadNextFg();
 
-            // Rotação do Fundo com sistema Anti-Tela Preta (Camada Dupla)
             let currentBg = 0;
             setInterval(() => {
                 const slides = document.querySelectorAll('#background-slideshow .bg-slide');
@@ -408,14 +425,13 @@
                     
                     slides.forEach(s => s.classList.remove('prev'));
                     slides[currentBg].classList.remove('active');
-                    slides[currentBg].classList.add('prev'); // A foto antiga fica esperando atrás
+                    slides[currentBg].classList.add('prev');
                     
                     currentBg = (currentBg + 1) % slides.length;
-                    slides[currentBg].classList.add('active'); // A nova surge na frente
+                    slides[currentBg].classList.add('active');
                 }
             }, tempoFundo);
 
-            // Rotação da Foto Principal
             let currentFg = 0;
             setInterval(() => {
                 const slides = document.querySelectorAll('#main-carousel .fg-slide');
@@ -466,9 +482,19 @@
             document.getElementById('seconds').innerText = seconds;
         }
 
+        // LÓGICA ATUALIZADA DO BOTÃO SURPRESA E DA MÚSICA
         function toggleSurprise() {
             const card = document.getElementById('surprise-card');
             card.classList.toggle('is-flipped');
+
+            // Toca a música caso esteja pausada, pausa se estiver tocando
+            if (musicaFundo.paused) {
+                musicaFundo.play().catch(error => {
+                    console.log("O navegador bloqueou o áudio. O usuário precisa interagir mais com a página.");
+                });
+            } else {
+                musicaFundo.pause();
+            }
         }
 
         function createHeartDrop() {
@@ -493,8 +519,6 @@
             inicializarSlideshows();
             updateCounter();
             setInterval(updateCounter, 1000);
-            
-            // Intensidade da chuva: 1 coração gerado a cada 150ms
             setInterval(createHeartDrop, 150);
         };
     </script>
