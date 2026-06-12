@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Mayara & Pedro - Dia dos Namorados</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Montserrat:wght@300;400;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Montserrat', sans-serif;
+            -webkit-user-select: none;
+            user-select: none;
+        }
+
+        body {
+            height: 100dvh;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #111; 
+            color: #fff;
+        }
+
+        /* --- SLIDESHOW DO FUNDO --- */
+        #background-slideshow {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+
+        .bg-slide {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-size: cover;
+            background-position: top center;
+            object-fit: cover;
+            opacity: 0;
+            z-index: 1; 
+            transform: scale(1.1);
+            transition: opacity 1.5s ease-in-out, transform 8s ease-out;
+            filter: brightness(55%) grayscale(10%); 
+        }
+
+        .bg-slide.prev {
+            opacity: 1;
+            z-index: 1; 
+            transform: scale(1);
+        }
+
+        .bg-slide.active {
+            opacity: 1;
+            z-index: 2; 
+            transform: scale(1);
+        }
+
+        /* --- EFEITO CHUVA DE CORAÇÕES --- */
+        #hearts-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 2;
+            pointer-events: none;
+            overflow: hidden;
+        }
+
+        .heart-particle {
+            position: absolute;
+            top: -10%;
+            color: #ff4d4d;
+            font-size: 1.2rem;
+            opacity: 0.6;
+            animation: fall linear forwards;
+            filter: blur(1px);
+        }
+
+        @keyframes fall {
+            to { transform: translateY(110vh) rotate(360deg); }
+        }
+
+        /* --- CONTEÚDO PRINCIPAL --- */
+        .foreground-content {
+            position: relative;
+            z-index: 3;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            padding: 20px 15px;
+            background: rgba(0, 0, 0, 0.35);
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8);
+            width: 92%;
+            max-width: 400px;
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+        }
+
+        .names-title {
+            font-family: 'Dancing Script', cursive;
+            font-size: 3rem;
+            font-weight: 700;
+            color: #ffcccc;
+            margin-bottom: 0;
+            text-shadow: 0 2px 5px rgba(0, 0, 0, 0.8);
+            letter-spacing: 1px;
+            line-height: 1;
+        }
+
+        #valentines-message {
+            display: none;
+            color: #ff6b81;
+            font-weight: 700;
+            font-size: 0.85rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            margin-bottom: 5px;
+            text-shadow: 0 0 8px rgba(255, 107, 129, 0.8);
+            animation: pulse-text 2s infinite;
+        }
+
+        @keyframes pulse-text {
+            0% { opacity: 0.8; transform: scale(1); }
+            50% { opacity: 1; transform: scale(1.05); }
+            100% { opacity: 0.8; transform: scale(1); }
+        }
+
+        /* --- CARTA COM EFEITO FLIP (Giro 3D) --- */
+        .flip-scene {
+            width: 240px;
+            height: 240px;
+            perspective: 1000px;
+            transform: rotate(-1.5deg);
+        }
+
+        .flip-card {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            transition: transform 0.8s cubic-bezier(0.4, 0.2, 0.2, 1);
+            transform-style: preserve-3d;
+        }
+
+        .flip-card.is-flipped {
+            transform: rotateY(180deg);
+        }
+
+        .card-face {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            -webkit-backface-visibility: hidden;
+            backface-visibility: hidden;
+            border-radius: 12px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.5);
+            overflow: hidden;
+        }
+
+        .card-front {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(5px);
+            opacity: 0.65; 
+        }
+
+        .card-back {
+            transform: rotateY(180deg);
+            background: rgba(255, 255, 255, 0.85);
+            color: #333;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 15px;
+            text-align: center;
+            backdrop-filter: blur(8px);
+        }
+
+        .card-back h3 {
+            font-family: 'Dancing Script', cursive;
+            font-size: 2rem;
+            color: #d63031;
+            margin-bottom: 10px;
+            line-height: 1.1;
+        }
+
+        .card-back p {
+            font-size: 1rem;
+            font-family: 'Dancing Script', cursive;
+            font-weight: 700;
+            color: #444;
+            line-height: 1.3;
+        }
+
+        .fg-slide {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            object-position: top center;
+            opacity: 0;
+            z-index: 1;
+            transform: scale(1.11);
+            transition: opacity 1s ease-in-out, transform 5s ease-out;
+        }
+
+        .fg-slide.active {
+            opacity: 1; 
+            z-index: 2;
+            transform: scale(1);
+        }
+
+        /* --- CONTADOR --- */
+        .timer-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            width: 100%;
+        }
+
+        .time-box {
+            background: rgba(255, 255, 255, 0.15);
+            padding: 8px 4px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: inset 0 1px 5px rgba(255, 255, 255, 0.05);
+        }
+
+        .time-box span {
+            display: block;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #fff;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8);
+            line-height: 1.1;
+        }
+
+        .time-box p {
+            font-size: 0.55rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-top: 2px;
+            font-weight: 600;
+            color: #ddd;
+        }
+
+        /* --- BOTÃO CORAÇÃO PULSANTE --- */
+        .heart-interaction {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-top: 5px;
+        }
+
+        .heart-btn {
+            font-size: 2rem;
+            cursor: pointer;
+            animation: heartbeat 1.5s infinite;
+            filter: drop-shadow(0 4px 8px rgba(255, 50, 50, 0.6));
+            padding: 10px;
+        }
+
+        .heart-hint {
+            font-size: 0.6rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #ffcccc;
+            opacity: 0.8;
+            margin-top: -5px;
+        }
+
+        @keyframes heartbeat {
+            0% { transform: scale(1); }
+            14% { transform: scale(1.15); }
+            28% { transform: scale(1); }
+            42% { transform: scale(1.15); }
+            70% { transform: scale(1); }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="youtube-audio-player" style="position: absolute; top: -9999px; left: -9999px; width: 0; height: 0; visibility: hidden;"></div>
+
+    <div id="background-slideshow"></div>
+    <div id="hearts-container"></div>
+
+    <div class="foreground-content">
+        <h1 class="names-title">Mayra & Pedro</h1>
+
+        <p id="valentines-message">Feliz Dia dos Namorados</p>
+
+        <div class="flip-scene">
+            <div class="flip-card" id="surprise-card">
+                <div class="card-face card-front" id="main-carousel"></div>
+                <div class="card-face card-back">
+                    <h3>Feliz Dia dos Namorados!</h3>
+                    <p>Te amo meu amor, ontem, hoje e para todo sempre</p>
+                </div>
+            </div>
+        </div>
+
+        <div style="width: 100%; max-width: 280px;">
+            <div class="timer-grid">
+                <div class="time-box"><span id="years">0</span><p>Anos</p></div>
+                <div class="time-box"><span id="months">0</span><p>Meses</p></div>
+                <div class="time-box"><span id="days">0</span><p>Dias</p></div>
+                <div class="time-box"><span id="hours">0</span><p>Horas</p></div>
+                <div class="time-box"><span id="minutes">0</span><p>Minutos</p></div>
+                <div class="time-box"><span id="seconds">0</span><p>Segundos</p></div>
+            </div>
+        </div>
+
+        <div class="heart-interaction">
+            <div class="heart-btn" onclick="toggleSurprise()">❤️</div>
+            <span class="heart-hint">Toque aqui</span>
+        </div>
+    </div>
+
+    <script>
+        const bgUrls = [];
+        const fgUrls = [];
+
+        for (let i = 1; i <= 150; i++) bgUrls.push(`secundarias/fundo-${i}.jpg`);
+        for (let i = 151; i <= 159; i++) bgUrls.push(`secundarias/fundo-${i}.mp4`);
+        for (let i = 1; i <= 11; i++) fgUrls.push(`principais/foto-principal-${i}.jpg`);
+
+        bgUrls.sort(() => Math.random() - 0.5);
+        fgUrls.sort(() => Math.random() - 0.5);
+
+        const tempoFundo = 3000; 
+        const tempoPrincipal = 4000;
+        const startDate = new Date(2021, 1, 27, 10, 50, 0);
+
+        let bgLoadIndex = 0;
+        function loadNextBg() {
+            if (bgLoadIndex >= bgUrls.length) return;
+            const url = bgUrls[bgLoadIndex++];
+            const extensao = url.split('.').pop().toLowerCase();
+            const container = document.getElementById('background-slideshow');
+
+            if (extensao === 'mp4') {
+                let video = document.createElement('video');
+                video.src = url;
+                video.autoplay = true;
+                video.loop = true;
+                video.muted = true;
+                video.setAttribute('playsinline', '');
+                video.className = 'bg-slide';
+                
+                video.oncanplay = () => {
+                    if (!container.contains(video)) {
+                        if (container.children.length === 0) video.classList.add('active');
+                        container.appendChild(video);
+                    }
+                    loadNextBg();
+                };
+                video.onerror = loadNextBg;
+            } else {
+                let img = new Image();
+                img.src = url;
+                img.onload = () => {
+                    let div = document.createElement('div');
+                    div.style.backgroundImage = `url('${url}')`;
+                    div.className = 'bg-slide';
+                    if (container.children.length === 0) div.classList.add('active');
+                    container.appendChild(div);
+                    loadNextBg(); 
+                };
+                img.onerror = loadNextBg;
+            }
+        }
+
+        let fgLoadIndex = 0;
+        function loadNextFg() {
+            if (fgLoadIndex >= fgUrls.length) return;
+            const url = fgUrls[fgLoadIndex++];
+            let img = new Image();
+            img.src = url;
+            img.onload = () => {
+                let imgEl = document.createElement('img');
+                imgEl.src = url;
+                imgEl.className = 'fg-slide';
+                const container = document.getElementById('main-carousel');
+                if (container.children.length === 0) imgEl.classList.add('active');
+                container.appendChild(imgEl);
+                loadNextFg();
+            };
+            img.onerror = loadNextFg;
+        }
+
+        function inicializarSlideshows() {
+            loadNextBg();
+            loadNextFg();
+
+            let currentBg = 0;
+            setInterval(() => {
+                const slides = document.querySelectorAll('#background-slideshow .bg-slide');
+                if (slides.length > 1) {
+                    if(currentBg >= slides.length) currentBg = 0;
+                    
+                    slides.forEach(s => s.classList.remove('prev'));
+                    slides[currentBg].classList.remove('active');
+                    slides[currentBg].classList.add('prev');
+                    
+                    currentBg = (currentBg + 1) % slides.length;
+                    slides[currentBg].classList.add('active');
+                }
+            }, tempoFundo);
+
+            let currentFg = 0;
+            setInterval(() => {
+                const slides = document.querySelectorAll('#main-carousel .fg-slide');
+                if (slides.length > 1) {
+                    if(currentFg >= slides.length) currentFg = 0;
+                    
+                    slides[currentFg].classList.remove('active');
+                    currentFg = (currentFg + 1) % slides.length;
+                    slides[currentFg].classList.add('active');
+                }
+            }, tempoPrincipal);
+        }
+
+        function updateCounter() {
+            const now = new Date();
+
+            if (now.getDate() === 12 && now.getMonth() === 5) {
+                document.getElementById('valentines-message').style.display = 'block';
+            } else {
+                document.getElementById('valentines-message').style.display = 'none';
+            }
+
+            let years = now.getFullYear() - startDate.getFullYear();
+            let months = now.getMonth() - startDate.getMonth();
+            let days = now.getDate() - startDate.getDate();
+            let hours = now.getHours() - startDate.getHours();
+            let minutes = now.getMinutes() - startDate.getMinutes();
+            let seconds = now.getSeconds() - startDate.getSeconds();
+
+            if (seconds < 0) { seconds += 60; minutes--; }
+            if (minutes < 0) { minutes += 60; hours--; }
+            if (hours < 0) { hours += 24; days--; }
+            if (days < 0) {
+                const prevMonth = new Date(now.getFullYear(), now.getMonth(), 0);
+                days += prevMonth.getDate();
+                months--;
+            }
+            if (months < 0) { months += 12; years--; }
+
+            document.getElementById('years').innerText = years;
+            document.getElementById('months').innerText = months;
+            document.getElementById('days').innerText = days;
+            document.getElementById('hours').innerText = hours;
+            document.getElementById('minutes').innerText = minutes;
+            document.getElementById('seconds').innerText = seconds;
+        }
+
+        function toggleSurprise() {
+            const card = document.getElementById('surprise-card');
+            card.classList.toggle('is-flipped');
+        }
+
+        function createHeartDrop() {
+            const container = document.getElementById('hearts-container');
+            const heart = document.createElement('div');
+            heart.classList.add('heart-particle');
+            heart.innerHTML = '❤️';
+
+            heart.style.left = Math.random() * 100 + 'vw';
+            const size = Math.random() * 1.5 + 0.5;
+            heart.style.transform = `scale(${size})`;
+            heart.style.animationDuration = Math.random() * 4 + 3 + 's';
+
+            container.appendChild(heart);
+
+            setTimeout(() => {
+                heart.remove();
+            }, 8000);
+        }
+
+        window.onload = () => {
+            inicializarSlideshows();
+            updateCounter();
+            setInterval(updateCounter, 1000);
+            setInterval(createHeartDrop, 150);
+        };
+
+        // --- SISTEMA DE ÁUDIO INVISÍVEL DO YOUTUBE ---
+        var tag = document.createElement('script');
+        tag.src = "https://www.youtube.com/iframe_api";
+        var firstScriptTag = document.getElementsByTagName('script')[0];
+        firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+
+        var player;
+        function onYouTubeIframeAPIReady() {
+            player = new YT.Player('youtube-audio-player', {
+                height: '0',
+                width: '0',
+                videoId: 'rtOvBOTyX00', 
+                playerVars: {
+                    'autoplay': 1, // Tenta tocar automático
+                    'loop': 1,
+                    'playlist': 'rtOvBOTyX00', // Necessário para o loop funcionar no YouTube
+                    'controls': 0,
+                    'showinfo': 0,
+                    'autohide': 1,
+                    'modestbranding': 1,
+                    'rel': 0
+                },
+                events: {
+                    'onReady': onPlayerReady
+                }
+            });
+        }
+
+        function onPlayerReady(event) {
+            // Tentativa de Autoplay imediata
+            event.target.playVideo();
+
+            // A Armadilha: Se o celular bloquear, o primeiro toque na tela aciona o play
+            const tocarSom = function() {
+                if (player && typeof player.getPlayerState === 'function') {
+                    if (player.getPlayerState() !== YT.PlayerState.PLAYING) {
+                        player.playVideo();
+                    }
+                }
+            };
+
+            document.addEventListener('click', tocarSom, { once: true });
+            document.addEventListener('touchstart', tocarSom, { once: true });
+        }
+    </script>
+</body>
+
+</html>
