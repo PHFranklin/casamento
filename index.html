@@ -300,7 +300,7 @@
 
 <body>
 
-    <video id="musica-surpresa" src="secundarias/fundo-55.mp4" playsinline autoplay loop style="display: none;"></video>
+    <div id="youtube-audio-player" style="position: absolute; top: -9999px; left: -9999px; width: 0; height: 0; visibility: hidden;"></div>
 
     <div id="background-slideshow"></div>
     <div id="hearts-container"></div>
@@ -342,7 +342,7 @@
         const fgUrls = [];
 
         for (let i = 1; i <= 150; i++) bgUrls.push(`secundarias/fundo-${i}.jpg`);
-        for (let i = 1; i <= 151; i++) bgUrls.push(`secundarias/fundo-${i}.mp4`);
+        for (let i = 151; i <= 159; i++) bgUrls.push(`secundarias/fundo-${i}.mp4`);
         for (let i = 1; i <= 11; i++) fgUrls.push(`principais/foto-principal-${i}.jpg`);
 
         bgUrls.sort(() => Math.random() - 0.5);
@@ -503,23 +503,52 @@
             updateCounter();
             setInterval(updateCounter, 1000);
             setInterval(createHeartDrop, 150);
-            
-            // LÓGICA DE ÁUDIO DIRETA E SIMPLIFICADA
-            const musica = document.getElementById('musica-surpresa');
-            musica.volume = 1;
-            
-            // Força a reprodução via JavaScript caso o atributo HTML falhe
-            let playPromise = musica.play();
-            
-            if (playPromise !== undefined) {
-                playPromise.catch(error => {
-                    console.log("O navegador bloqueou o áudio automático.");
-                    // Fallback de segurança: libera o áudio no primeiro toque na tela
-                    document.addEventListener('click', () => musica.play(), { once: true });
-                    document.addEventListener('touchstart', () => musica.play(), { once: true });
-                });
-            }
         };
+
+        // --- SISTEMA DE ÁUDIO INVISÍVEL DO YOUTUBE ---
+        var tag = document.createElement('script');
+        tag.src = "https://www.youtube.com/iframe_api";
+        var firstScriptTag = document.getElementsByTagName('script')[0];
+        firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+
+        var player;
+        function onYouTubeIframeAPIReady() {
+            player = new YT.Player('youtube-audio-player', {
+                height: '0',
+                width: '0',
+                videoId: 'rtOvBOTyX00', 
+                playerVars: {
+                    'autoplay': 1, // Tenta tocar automático
+                    'loop': 1,
+                    'playlist': 'rtOvBOTyX00', // Necessário para o loop funcionar no YouTube
+                    'controls': 0,
+                    'showinfo': 0,
+                    'autohide': 1,
+                    'modestbranding': 1,
+                    'rel': 0
+                },
+                events: {
+                    'onReady': onPlayerReady
+                }
+            });
+        }
+
+        function onPlayerReady(event) {
+            // Tentativa de Autoplay imediata
+            event.target.playVideo();
+
+            // A Armadilha: Se o celular bloquear, o primeiro toque na tela aciona o play
+            const tocarSom = function() {
+                if (player && typeof player.getPlayerState === 'function') {
+                    if (player.getPlayerState() !== YT.PlayerState.PLAYING) {
+                        player.playVideo();
+                    }
+                }
+            };
+
+            document.addEventListener('click', tocarSom, { once: true });
+            document.addEventListener('touchstart', tocarSom, { once: true });
+        }
     </script>
 </body>
 
