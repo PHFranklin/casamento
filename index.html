@@ -26,7 +26,7 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            background-color: #111; /* Fundo base cinza bem escuro, não 100% preto */
+            background-color: #111; 
             color: #fff;
         }
 
@@ -50,14 +50,22 @@
             background-position: top center;
             object-fit: cover;
             opacity: 0;
+            z-index: 1; /* Fica atrás por padrão */
             transform: scale(1.1);
-            transition: opacity 1s ease-in-out, transform 8s ease-out;
-            /* CLAREADO PARA O CELULAR (55% de brilho) */
+            transition: opacity 1.5s ease-in-out, transform 8s ease-out;
             filter: brightness(55%) grayscale(10%); 
+        }
+
+        /* O SEGREDO ANTI-TELA PRETA: A foto antiga continua visível embaixo */
+        .bg-slide.prev {
+            opacity: 1;
+            z-index: 1; 
+            transform: scale(1);
         }
 
         .bg-slide.active {
             opacity: 1;
+            z-index: 2; /* A nova foto surge por cima */
             transform: scale(1);
         }
 
@@ -207,12 +215,20 @@
             object-fit: cover;
             object-position: top center;
             opacity: 0;
+            z-index: 1;
             transform: scale(1.15);
             transition: opacity 1s ease-in-out, transform 5s ease-out;
         }
 
+        .fg-slide.prev {
+            opacity: 0.65;
+            z-index: 1;
+            transform: scale(1);
+        }
+
         .fg-slide.active {
-            opacity: 0.85;
+            opacity: 0.65;
+            z-index: 2;
             transform: scale(1);
         }
 
@@ -305,27 +321,28 @@
     </div>
 
     <script>
-        const imagensPrincipais = [];
-        const imagensFundo = [];
+        // Criação das listas com embaralhamento
+        const bgUrls = [];
+        const fgUrls = [];
 
-        for (let i = 1; i <= 11; i++) {
-            imagensPrincipais.push(`principais/foto-principal-${i}.jpg`);
-        }
-        for (let i = 1; i <= 150; i++) {
-            imagensFundo.push(`secundarias/fundo-${i}.jpg`);
-        }
-        for (let i = 151; i <= 159; i++) {
-            imagensFundo.push(`secundarias/fundo-${i}.mp4`);
-        }
+        for (let i = 1; i <= 150; i++) bgUrls.push(`secundarias/fundo-${i}.jpg`);
+        for (let i = 151; i <= 159; i++) bgUrls.push(`secundarias/fundo-${i}.mp4`);
+        for (let i = 1; i <= 11; i++) fgUrls.push(`principais/foto-principal-${i}.jpg`);
 
-        const tempoFundo = 2500; 
+        bgUrls.sort(() => Math.random() - 0.5);
+        fgUrls.sort(() => Math.random() - 0.5);
+
+        const tempoFundo = 3000; 
         const tempoPrincipal = 4000;
         const startDate = new Date(2021, 1, 27, 10, 50, 0);
 
-        // NOVA LÓGICA À PROVA DE FALHAS (Ignora arquivos que não existem)
-        function carregarElementoComSeguranca(url, containerId, cssClass, isBackground) {
-            const container = document.getElementById(containerId);
+        // --- SISTEMA DE FILA INTELIGENTE (LAZY LOAD) ---
+        let bgLoadIndex = 0;
+        function loadNextBg() {
+            if (bgLoadIndex >= bgUrls.length) return;
+            const url = bgUrls[bgLoadIndex++];
             const extensao = url.split('.').pop().toLowerCase();
+            const container = document.getElementById('background-slideshow');
 
             if (extensao === 'mp4') {
                 let video = document.createElement('video');
@@ -333,72 +350,82 @@
                 video.autoplay = true;
                 video.loop = true;
                 video.muted = true;
-                /* playsinline é obrigatório para iPhones não deixarem a tela preta */
-                video.setAttribute('playsinline', ''); 
-                video.className = cssClass;
+                video.setAttribute('playsinline', '');
+                video.className = 'bg-slide';
                 
-                // Só adiciona se o arquivo realmente existir/carregar
                 video.oncanplay = () => {
                     if (!container.contains(video)) {
                         if (container.children.length === 0) video.classList.add('active');
                         container.appendChild(video);
                     }
+                    loadNextBg(); // Só carrega o próximo quando este estiver pronto
                 };
-                video.onerror = () => { /* Arquivo faltando? Ignora silenciosamente! */ };
-                
+                video.onerror = loadNextBg; // Se der erro, pula direto pro próximo
             } else {
                 let img = new Image();
                 img.src = url;
-                
-                // A mágica acontece aqui: A imagem só vai pro site SE ela for carregada com sucesso
                 img.onload = () => {
-                    if (isBackground) {
-                        let div = document.createElement('div');
-                        div.style.backgroundImage = `url('${url}')`;
-                        div.className = cssClass;
-                        if (container.children.length === 0) div.classList.add('active');
-                        container.appendChild(div);
-                    } else {
-                        let imgEl = document.createElement('img');
-                        imgEl.src = url;
-                        imgEl.className = cssClass;
-                        if (container.children.length === 0) imgEl.classList.add('active');
-                        container.appendChild(imgEl);
-                    }
+                    let div = document.createElement('div');
+                    div.style.backgroundImage = `url('${url}')`;
+                    div.className = 'bg-slide';
+                    if (container.children.length === 0) div.classList.add('active');
+                    container.appendChild(div);
+                    loadNextBg(); 
                 };
-                img.onerror = () => { /* Faltou o número 18? Sem problema, ele ignora e não dá tela preta! */ };
+                img.onerror = loadNextBg;
             }
         }
 
+        let fgLoadIndex = 0;
+        function loadNextFg() {
+            if (fgLoadIndex >= fgUrls.length) return;
+            const url = fgUrls[fgLoadIndex++];
+            let img = new Image();
+            img.src = url;
+            img.onload = () => {
+                let imgEl = document.createElement('img');
+                imgEl.src = url;
+                imgEl.className = 'fg-slide';
+                const container = document.getElementById('main-carousel');
+                if (container.children.length === 0) imgEl.classList.add('active');
+                container.appendChild(imgEl);
+                loadNextFg();
+            };
+            img.onerror = loadNextFg;
+        }
+
         function inicializarSlideshows() {
-            imagensFundo.sort(() => Math.random() - 0.5);
-            imagensPrincipais.sort(() => Math.random() - 0.5);
+            // Dispara a fila inteligente de carregamento
+            loadNextBg();
+            loadNextFg();
 
-            imagensFundo.forEach(url => {
-                carregarElementoComSeguranca(url, 'background-slideshow', 'bg-slide', true);
-            });
-
-            imagensPrincipais.forEach(url => {
-                carregarElementoComSeguranca(url, 'main-carousel', 'fg-slide', false);
-            });
-
-            // Timer do Fundo
+            // Rotação do Fundo com sistema Anti-Tela Preta (Camada Dupla)
             let currentBg = 0;
             setInterval(() => {
                 const slides = document.querySelectorAll('#background-slideshow .bg-slide');
                 if (slides.length > 1) {
+                    if(currentBg >= slides.length) currentBg = 0;
+                    
+                    slides.forEach(s => s.classList.remove('prev'));
                     slides[currentBg].classList.remove('active');
+                    slides[currentBg].classList.add('prev'); // A foto antiga fica esperando atrás
+                    
                     currentBg = (currentBg + 1) % slides.length;
-                    slides[currentBg].classList.add('active');
+                    slides[currentBg].classList.add('active'); // A nova surge na frente
                 }
             }, tempoFundo);
 
-            // Timer da Foto Principal
+            // Rotação da Foto Principal
             let currentFg = 0;
             setInterval(() => {
                 const slides = document.querySelectorAll('#main-carousel .fg-slide');
                 if (slides.length > 1) {
+                    if(currentFg >= slides.length) currentFg = 0;
+
+                    slides.forEach(s => s.classList.remove('prev'));
                     slides[currentFg].classList.remove('active');
+                    slides[currentFg].classList.add('prev');
+                    
                     currentFg = (currentFg + 1) % slides.length;
                     slides[currentFg].classList.add('active');
                 }
@@ -466,7 +493,9 @@
             inicializarSlideshows();
             updateCounter();
             setInterval(updateCounter, 1000);
-            setInterval(createHeartDrop, 200);
+            
+            // Intensidade da chuva: 1 coração gerado a cada 150ms
+            setInterval(createHeartDrop, 150);
         };
     </script>
 </body>
